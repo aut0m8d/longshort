@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Bell, Menu } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PhantomWalletConnect } from "@/components/PhantomWalletConnect";
+import { LongShortLogo } from "@/components/svgs/LongShortLogo";
 
 export default function Header() {
   return (
@@ -13,7 +14,9 @@ export default function Header() {
           <Button variant="ghost" size="icon" className="lg:hidden">
             <Menu className="h-6 w-6" />
           </Button>
-          <h1 className="text-2xl font-bold">-/+</h1>
+          <h1 className="text-2xl font-bold">
+            <LongShortLogo className="w-10" />
+          </h1>
           <nav className="hidden lg:flex space-x-4">
             <Button variant="ghost">Trade</Button>
             <Button variant="ghost">Markets</Button>
