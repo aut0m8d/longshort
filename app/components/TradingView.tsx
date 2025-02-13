@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
-import { useTheme } from "next-themes"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useRef } from "react";
+import { useTheme } from "next-themes";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 declare global {
   interface Window {
-    TradingView: any
+    TradingView: any; // eslint-disable-line
   }
 }
 
 export default function TradingView() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const { theme } = useTheme()
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (containerRef.current && window.TradingView) {
@@ -28,9 +28,9 @@ export default function TradingView() {
         enable_publishing: false,
         allow_symbol_change: true,
         container_id: "tradingview_chart",
-      })
+      });
     }
-  }, [theme])
+  }, [theme]);
 
   return (
     <Card>
@@ -41,6 +41,5 @@ export default function TradingView() {
         <div ref={containerRef} id="tradingview_chart" className="h-[400px]" />
       </CardContent>
     </Card>
-  )
+  );
 }
-
