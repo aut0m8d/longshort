@@ -1,8 +1,8 @@
-import Header from "./components/Header"
-import TradingView from "./components/TradingView"
-import OrderForm from "./components/OrderForm"
-import Positions from "./components/Positions"
-import MarketInfo from "./components/MarketInfo"
+import Header from "./components/Header";
+import TradingView from "./components/TradingView";
+import OrderForm from "./components/OrderForm";
+import Positions from "./components/Positions";
+import MarketInfo from "./components/MarketInfo";
 
 export default function Home() {
   return (
@@ -13,9 +13,7 @@ export default function Home() {
           <div className="lg:col-span-2">
             <TradingView />
           </div>
-          <div>
-            <OrderForm />
-          </div>
+          <OrderForm />
           <div className="lg:col-span-2">
             <Positions />
           </div>
@@ -25,6 +23,5 @@ export default function Home() {
         </div>
       </main>
     </div>
-  )
+  );
 }
-
