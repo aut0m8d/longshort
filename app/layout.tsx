@@ -1,7 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Script from "next/script";
 import { ThemeProvider } from "@/components/theme-provider";
 import type React from "react";
 
@@ -20,7 +19,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <Script src="https://s3.tradingview.com/tv.js" />
+        {/* eslint-disable-next-line */}
+        <script
+          type="text/javascript"
+          src="https://s3.tradingview.com/tv.js"
+        ></script>
       </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
