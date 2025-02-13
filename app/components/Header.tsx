@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Bell, Menu } from "lucide-react"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { PhantomWalletConnect } from "@/components/PhantomWalletConnect"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Bell, Menu } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { PhantomWalletConnect } from "@/components/PhantomWalletConnect";
 
 export default function Header() {
   return (
@@ -24,7 +24,7 @@ export default function Header() {
           <div className="hidden lg:block">
             <Input placeholder="Search markets" className="w-64" />
           </div>
-          <Select>
+          {/* <Select>
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="DOGE/USD" />
             </SelectTrigger>
@@ -33,7 +33,7 @@ export default function Header() {
               <SelectItem value="shib">SHIB/USD</SelectItem>
               <SelectItem value="pepe">PEPE/USD</SelectItem>
             </SelectContent>
-          </Select>
+          </Select> */}
           <ThemeToggle />
           <Button variant="ghost" size="icon">
             <Bell className="h-5 w-5" />
@@ -42,6 +42,5 @@ export default function Header() {
         </div>
       </div>
     </header>
-  )
+  );
 }
-
