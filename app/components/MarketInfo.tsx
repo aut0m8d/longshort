@@ -1,6 +1,16 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+interface Props {
+  price: number;
+  priceChange24h: number;
+  liquidity: number;
+  volume24h: number;
+  apr24h: number;
+  fee24h: number;
+}
 
-export default function MarketInfo() {
+export default function MarketInfo({ price, priceChange24h }: Props) {
+  const isPositive = priceChange24h >= 0;
+
   return (
     <Card>
       <CardHeader>
@@ -9,14 +19,17 @@ export default function MarketInfo() {
       <CardContent>
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Index Price</span>
-            <span>$0.0805</span>
+            <span className="text-muted-foreground">SOL Price</span>
+            <span>${price.toFixed(9)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Mark Price</span>
-            <span>$0.0807</span>
+            <span className="text-muted-foreground">24h Change</span>
+            <span className={isPositive ? "text-green-500" : "text-red-500"}>
+              {isPositive ? "+" : ""}
+              {priceChange24h.toFixed(2)}%
+            </span>
           </div>
-          <div className="flex justify-between">
+          {/* <div className="flex justify-between">
             <span className="text-muted-foreground">Funding Rate</span>
             <span>0.01%</span>
           </div>
@@ -27,10 +40,9 @@ export default function MarketInfo() {
           <div className="flex justify-between">
             <span className="text-muted-foreground">Open Interest</span>
             <span>$9,876,543</span>
-          </div>
+          </div> */}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
-
