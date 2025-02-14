@@ -71,9 +71,6 @@ dependencies:
   pino-pretty:
     specifier: ^13.0.0
     version: 13.0.0
-  raydium-sdk-v2:
-    specifier: link:@types/@raydium-io/raydium-sdk-v2
-    version: link:@types/@raydium-io/raydium-sdk-v2
   react:
     specifier: ^18
     version: 18.3.1
