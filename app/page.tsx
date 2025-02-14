@@ -9,6 +9,8 @@ import { getPoolInfo } from "@/lib/poolData";
 import { MintInput } from "./components/MintInput";
 import { MintSetup } from "./components/MintSetup";
 
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+
 import Header from "./components/Header";
 import TradingView from "./components/TradingView";
 import OrderForm from "./components/OrderForm";
@@ -125,7 +127,7 @@ export default function Home() {
           {/* <OrderForm /> */}
           <div>
             {/* <MintInput onSubmit={handleMintSubmit} /> */}
-            {targetMint && !positionMint && wallet && (
+            {targetMint && !positionMint && (
               <MintSetup
                 leverage={leverage}
                 ammAccount={ammAccount}

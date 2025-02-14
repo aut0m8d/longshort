@@ -77,7 +77,7 @@ export const MintSetup = ({
         console.log("SOLANA:", solana);
         if (solana.isPhantom) {
           try {
-            const response = await solana.connect({ onlyIfTrusted: true });
+            const response = await solana.connect();
             console.log(response);
             setWallet({
               publicKey: response.publicKey,
@@ -581,9 +581,10 @@ export const MintSetup = ({
             onClick={() => handleCreateMints("long")}
             size="lg"
             type="button"
+            disabled={!wallet}
             className="w-full"
           >
-            Place Order
+            {!wallet ? "Wallet not connected" : "Place Order"}
           </Button>
         </CardFooter>
       </div>
