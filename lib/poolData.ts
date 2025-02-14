@@ -34,6 +34,7 @@ export async function fetchPoolData(
       disableLoadToken: true,
     });
 
+    // @ts-expect-error
     const poolData = await raydium.api.fetchPoolByMints({
       mint1: SOL_MINT,
       mint2: targetMint,

@@ -18,6 +18,7 @@ import {
   TOKEN_2022_PROGRAM_ID,
 } from "@solana/spl-token";
 import { BN } from "bn.js";
+// @ts-expect-error
 import { e } from "@raydium-io/raydium-sdk-v2/lib/api-19c05a82";
 import { toBuffer } from "@raydium-io/raydium-sdk-v2";
 
