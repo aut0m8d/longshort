@@ -2,6 +2,11 @@
 
 import { AnchorProvider, Program, Idl, utils } from "@coral-xyz/anchor";
 import {
+  useAnchorWallet,
+  useConnection,
+  useWallet,
+} from "@solana/wallet-adapter-react";
+import {
   PublicKey,
   Keypair,
   Connection,
@@ -43,7 +48,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 
 interface MintSetupProps {
-  program: Program<any>; // eslint-disable-line
+  program: Program<Idl>;
   ammAccount: string;
   ogMint: PublicKey;
   ammVaultA: string;
@@ -68,36 +73,10 @@ export const MintSetup = ({
   const connection = new Connection(
     "https://rpc.shyft.to?api_key=1y872euEMghE5flT"
   );
-  const [wallet, setWallet] = useState<any | null>(null); // eslint-disable-line
-
-  useEffect(() => {
-    const checkIfWalletIsConnected = async () => {
-      if ("solana" in window) {
-        const solana = window.solana as any; // eslint-disable-line
-        console.log("SOLANA:", solana);
-        if (solana.isPhantom) {
-          try {
-            const response = await solana.connect();
-            console.log(response);
-            setWallet({
-              publicKey: response.publicKey,
-              signTransaction: solana.signAndSendTransaction,
-              sendTransaction: () => {},
-            });
-          } catch (error) {
-            console.log(error);
-            // Handle connection error
-          }
-        }
-      }
-    };
-
-    checkIfWalletIsConnected();
-  }, []);
+  const wallet = useWallet();
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  console.log(error);
-  const awallet = wallet;
+  const awallet = useAnchorWallet();
   const [leverage, setLeverage] = useState<number>(3);
   const [solAmount, setSolAmount] = useState<number>(0.1);
   const [walletBalance, setWalletBalance] = useState<number>(0);
@@ -107,18 +86,18 @@ export const MintSetup = ({
 
   useEffect(() => {
     const getBalance = async () => {
-      if (wallet?.publicKey) {
-        const balance = await connection.getBalance(wallet?.publicKey);
+      if (wallet.publicKey) {
+        const balance = await connection.getBalance(wallet.publicKey);
         setWalletBalance(balance / LAMPORTS_PER_SOL);
       }
     };
     getBalance();
-  }, [wallet?.publicKey, connection]);
+  }, [wallet.publicKey, connection]);
   const [gameAccount, setGameAccount] = useState<any>(null);
   const [isLong, setIsLong] = useState<boolean>(true);
 
   const handleCreateMints = async (positionType: "long" | "short") => {
-    if (!wallet?.publicKey || !wallet?.signTransaction) {
+    if (!wallet.publicKey || !wallet.signTransaction) {
       setError("Please connect your wallet first");
       return;
     }
@@ -128,9 +107,9 @@ export const MintSetup = ({
 
     try {
       if (
-        !wallet?.publicKey ||
-        !wallet?.signTransaction ||
-        !wallet?.sendTransaction
+        !wallet.publicKey ||
+        !wallet.signTransaction ||
+        !wallet.sendTransaction
       ) {
         throw new Error("Wallet not fully connected");
       }
@@ -146,9 +125,10 @@ export const MintSetup = ({
       if (!awallet) {
         return;
       }
+      // @ts-ignore
       let gameAccount;
       try {
-        // @ts-expect-error game is defined
+        // @ts-ignore
         gameAccount = await program.account.game.fetch(gamePda);
       } catch (err) {
         console.error("Error fetching game account:", err);
@@ -166,7 +146,7 @@ export const MintSetup = ({
         );
         while (gameAccount == null || gameAccount == undefined) {
           try {
-            // @ts-expect-error game is defined
+            // @ts-ignore
             gameAccount = await program.account.game.fetch(gamePda);
           } catch (err) {
             console.error("Error fetching game account:", err);
@@ -231,26 +211,26 @@ export const MintSetup = ({
       }
 
       console.log("Final tokens to mint:", tokensToMint.toString());
+      // @ts-ignore
       // Both long and short positions use mint to enter
-      // @ts-expect-error methods is defined
       const mintIx = await program.methods
         .mintPosition(tokensToMint, positionType === "long", leverage)
         .accounts({
-          payer: wallet?.publicKey,
+          payer: wallet.publicKey,
           mint: positionType === "long" ? mint : otherMint,
           otherMint: positionType === "long" ? otherMint : mint,
           userTokenAccount:
             positionType === "long"
               ? getAssociatedTokenAddressSync(
                   mint,
-                  wallet?.publicKey,
+                  wallet.publicKey,
                   false,
                   TOKEN_2022_PROGRAM_ID,
                   ASSOCIATED_TOKEN_PROGRAM_ID
                 )
               : getAssociatedTokenAddressSync(
                   otherMint,
-                  wallet?.publicKey,
+                  wallet.publicKey,
                   false,
                   TOKEN_2022_PROGRAM_ID,
                   ASSOCIATED_TOKEN_PROGRAM_ID
@@ -259,14 +239,14 @@ export const MintSetup = ({
             positionType === "long"
               ? getAssociatedTokenAddressSync(
                   otherMint,
-                  wallet?.publicKey,
+                  wallet.publicKey,
                   false,
                   TOKEN_2022_PROGRAM_ID,
                   ASSOCIATED_TOKEN_PROGRAM_ID
                 )
               : getAssociatedTokenAddressSync(
                   mint,
-                  wallet?.publicKey,
+                  wallet.publicKey,
                   false,
                   TOKEN_2022_PROGRAM_ID,
                   ASSOCIATED_TOKEN_PROGRAM_ID
@@ -293,14 +273,14 @@ export const MintSetup = ({
       const preixs: any = [];
       const ata1 = getAssociatedTokenAddressSync(
         mint,
-        wallet?.publicKey,
+        wallet.publicKey,
         false,
         TOKEN_2022_PROGRAM_ID,
         ASSOCIATED_TOKEN_PROGRAM_ID
       );
       const ata2 = getAssociatedTokenAddressSync(
         otherMint,
-        wallet?.publicKey,
+        wallet.publicKey,
         false,
         TOKEN_2022_PROGRAM_ID,
         ASSOCIATED_TOKEN_PROGRAM_ID
@@ -311,9 +291,9 @@ export const MintSetup = ({
         if (!ataAiMaybe) {
           preixs.push(
             createAssociatedTokenAccountIdempotentInstruction(
-              wallet?.publicKey,
+              wallet.publicKey,
               ata1,
-              wallet?.publicKey,
+              wallet.publicKey,
               mint,
               TOKEN_2022_PROGRAM_ID,
               ASSOCIATED_TOKEN_PROGRAM_ID
@@ -324,9 +304,9 @@ export const MintSetup = ({
         if (!ataAiMaybe2) {
           preixs.push(
             createAssociatedTokenAccountIdempotentInstruction(
-              wallet?.publicKey,
+              wallet.publicKey,
               ata2,
-              wallet?.publicKey,
+              wallet.publicKey,
               otherMint,
               TOKEN_2022_PROGRAM_ID,
               ASSOCIATED_TOKEN_PROGRAM_ID
@@ -337,7 +317,7 @@ export const MintSetup = ({
         console.error("Error creating position:", err);
       }
       const tx = new Transaction().add(...preixs, mintIx);
-      const sig = await wallet?.sendTransaction(tx, connection);
+      const sig = await wallet.sendTransaction(tx, connection);
       await connection.confirmTransaction(sig, "confirmed");
 
       setMintsCreated(true);
@@ -345,7 +325,7 @@ export const MintSetup = ({
         mint: mint,
         sourceTokenAccount: getAssociatedTokenAddressSync(
           mint,
-          wallet?.publicKey,
+          wallet.publicKey,
           false,
           TOKEN_2022_PROGRAM_ID,
           ASSOCIATED_TOKEN_PROGRAM_ID
@@ -365,7 +345,7 @@ export const MintSetup = ({
   };
 
   const handleBurnPosition = async (positionType: "long" | "short") => {
-    if (!wallet?.publicKey || !wallet?.signTransaction) {
+    if (!wallet.publicKey || !wallet.signTransaction) {
       setError("Please connect your wallet first");
       return;
     }
@@ -381,7 +361,8 @@ export const MintSetup = ({
         [Buffer.from("game7"), ogMint.toBuffer(), new Uint8Array([leverage])],
         program.programId
       );
-      // @ts-expect-error game is defined
+      // @ts-ignore
+
       const gameAccount = await program.account.game.fetch(gamePda);
       const mint = gameAccount.longPositionMint;
       const otherMint = gameAccount.shortPositionMint;
@@ -401,7 +382,7 @@ export const MintSetup = ({
       const otherTargetMint = positionType === "long" ? otherMint : mint;
       const userAta = getAssociatedTokenAddressSync(
         targetMint,
-        wallet?.publicKey,
+        wallet.publicKey,
         false,
         TOKEN_2022_PROGRAM_ID,
         ASSOCIATED_TOKEN_PROGRAM_ID
@@ -427,21 +408,21 @@ export const MintSetup = ({
       const burnIx = await program.methods
         .burnPosition(tokensToBurn, new BN(leverage))
         .accounts({
-          owner: wallet?.publicKey,
+          owner: wallet.publicKey,
           mint: positionType === "long" ? mint : otherMint,
           otherMint: positionType === "long" ? otherMint : mint,
           userTokenAccount:
             positionType === "long"
               ? getAssociatedTokenAddressSync(
                   mint,
-                  wallet?.publicKey,
+                  wallet.publicKey,
                   false,
                   TOKEN_2022_PROGRAM_ID,
                   ASSOCIATED_TOKEN_PROGRAM_ID
                 )
               : getAssociatedTokenAddressSync(
                   otherMint,
-                  wallet?.publicKey,
+                  wallet.publicKey,
                   false,
                   TOKEN_2022_PROGRAM_ID,
                   ASSOCIATED_TOKEN_PROGRAM_ID
@@ -450,14 +431,14 @@ export const MintSetup = ({
             positionType === "long"
               ? getAssociatedTokenAddressSync(
                   otherMint,
-                  wallet?.publicKey,
+                  wallet.publicKey,
                   false,
                   TOKEN_2022_PROGRAM_ID,
                   ASSOCIATED_TOKEN_PROGRAM_ID
                 )
               : getAssociatedTokenAddressSync(
                   mint,
-                  wallet?.publicKey,
+                  wallet.publicKey,
                   false,
                   TOKEN_2022_PROGRAM_ID,
                   ASSOCIATED_TOKEN_PROGRAM_ID
@@ -483,7 +464,7 @@ export const MintSetup = ({
         .instruction();
 
       const tx = new Transaction().add(burnIx);
-      const sig = await wallet?.sendTransaction(tx, connection);
+      const sig = await wallet.sendTransaction(tx, connection);
       await connection.confirmTransaction(sig, "confirmed");
     } catch (err) {
       console.error("Error burning position:", err);
@@ -495,14 +476,14 @@ export const MintSetup = ({
 
   useEffect(() => {
     const getTokenBalance = async () => {
-      if (!wallet?.publicKey || !gameAccount) return;
+      if (!wallet.publicKey || !gameAccount) return;
 
       const targetMint = isLong
         ? gameAccount.longPositionMint
         : gameAccount.shortPositionMint;
       const userAta = getAssociatedTokenAddressSync(
         targetMint,
-        wallet?.publicKey,
+        wallet.publicKey,
         false,
         TOKEN_2022_PROGRAM_ID,
         ASSOCIATED_TOKEN_PROGRAM_ID
@@ -518,7 +499,7 @@ export const MintSetup = ({
     };
 
     getTokenBalance();
-  }, [wallet?.publicKey, gameAccount, isLong]);
+  }, [wallet.publicKey, gameAccount, isLong]);
 
   return (
     <Card className="h-full flex flex-col flex-end">
