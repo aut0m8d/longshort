@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import type React from "react";
-
+import { Providers } from "./providers";
 import { WarningBar } from "./components/WarningBar";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -29,8 +29,10 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <WarningBar />
-          {children}
+          <Providers>
+            <WarningBar />
+            {children}
+          </Providers>
         </ThemeProvider>
       </body>
     </html>

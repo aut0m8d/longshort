@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  useAnchorWallet,
+  useConnection,
+  useWallet,
+} from "@solana/wallet-adapter-react";
 import { useState, useEffect, useCallback } from "react";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { AnchorProvider, Idl, Program } from "@coral-xyz/anchor";
@@ -18,33 +23,11 @@ import Positions from "./components/Positions";
 import MarketInfo from "./components/MarketInfo";
 
 export default function Home() {
-  const [wallet, setWallet] = useState<any | null>(null); // eslint-disable-line
-
-  useEffect(() => {
-    const checkIfWalletIsConnected = async () => {
-      if ("solana" in window) {
-        const solana = window.solana as any; // eslint-disable-line
-        if (solana.isPhantom) {
-          try {
-            const response = await solana.connect({ onlyIfTrusted: true });
-            setWallet(response);
-          } catch (error) {
-            console.log(error);
-            // Handle connection error
-          }
-        }
-      }
-    };
-
-    checkIfWalletIsConnected();
-  }, []);
-
   const [leverage, setLeverage] = useState<number>(100);
   const connection = new Connection(
     "https://rpc.shyft.to?api_key=1y872euEMghE5flT"
   );
-  const connected = wallet;
-  console.log(connected);
+  const { connected } = useWallet();
   const [targetMint, setTargetMint] = useState<string>(
     "ijFmdLw8Vn64VjWSUXvqDKfkuti3g6oiRpjfR3g9GFM"
   );
@@ -63,7 +46,7 @@ export default function Home() {
   } | null>(null);
   const [gameState, setGameState] = useState({
     balance: 0,
-    position: "short",
+    position: "long",
   });
 
   const fetchPoolInfo = useCallback(async () => {
@@ -79,14 +62,17 @@ export default function Home() {
     }
   }, [connection, targetMint]);
 
+  const wallet = useAnchorWallet();
   const [program, setProgram] = useState<Program | null>(null);
   useEffect(() => {
     async function fetchIdl() {
       if (wallet) {
+        // @ts-ignore - We're creating a minimal provider for demonstration
         const provider = new AnchorProvider(connection, wallet, {
           commitment: "confirmed",
         });
 
+        // @ts-ignore - Using a minimal program instance
         setProgram(
           new Program(
             (await Program.fetchIdl(

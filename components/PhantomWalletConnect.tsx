@@ -1,52 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { Button } from "@/components/ui/button";
 import { Wallet } from "lucide-react";
+import { WalletName } from "@solana/wallet-adapter-base";
 
 export function PhantomWalletConnect() {
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const { publicKey, disconnect, connect, select, wallet } = useWallet();
+  const walletAddress = publicKey?.toBase58();
 
-  useEffect(() => {
-    const checkIfWalletIsConnected = async () => {
-      if ("solana" in window) {
-        const solana = window.solana as any; // eslint-disable-line
-        if (solana.isPhantom) {
-          try {
-            const response = await solana.connect({ onlyIfTrusted: true });
-            setWalletAddress(response.publicKey.toString());
-          } catch (error) {
-            console.log(error);
-            // Handle connection error
-          }
-        }
+  const handleConnect = async () => {
+    try {
+      // Select Phantom wallet if not already selected
+      if (!wallet) {
+        await select("Phantom" as WalletName);
       }
-    };
-
-    checkIfWalletIsConnected();
-  }, []);
-
-  const connectWallet = async () => {
-    if ("solana" in window) {
-      const solana = window.solana as any; // eslint-disable-line
-      if (solana.isPhantom) {
-        try {
-          const response = await solana.connect();
-          setWalletAddress(response.publicKey.toString());
-        } catch (error) {
-          console.log(error);
-          // Handle connection error
-        }
-      }
-    } else {
-      window.open("https://phantom.app/", "_blank");
-    }
-  };
-
-  const disconnectWallet = () => {
-    if (window.solana && window.solana.isConnected) {
-      window.solana.disconnect();
-      setWalletAddress(null);
+      await connect();
+    } catch (error) {
+      console.error("Failed to connect:", error);
     }
   };
 
@@ -54,7 +25,7 @@ export function PhantomWalletConnect() {
     <div>
       {walletAddress ? (
         <Button
-          onClick={disconnectWallet}
+          onClick={disconnect}
           variant="outline"
           className="flex items-center gap-2"
         >
@@ -65,7 +36,7 @@ export function PhantomWalletConnect() {
         </Button>
       ) : (
         <Button
-          onClick={connectWallet}
+          onClick={handleConnect}
           variant="outline"
           className="flex items-center gap-2"
         >
