@@ -1,10 +1,33 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const positions = [
-  { id: 1, symbol: "DOGE/USD", side: "Long", size: "1000", entry: "0.08", liq: "0.04", pnl: "+5.25%" },
-  { id: 2, symbol: "SHIB/USD", side: "Short", size: "10000000", entry: "0.00001", liq: "0.000015", pnl: "-2.10%" },
-]
+  {
+    id: 1,
+    symbol: "PLACEHOLDER/USD",
+    side: "Long",
+    size: "0",
+    entry: "0.00",
+    liq: "0.00",
+    pnl: "0.00%",
+  },
+  {
+    id: 2,
+    symbol: "PLACEHOLDER/USD",
+    side: "Short",
+    size: "0",
+    entry: "0.00",
+    liq: "0.00",
+    pnl: "0.00%",
+  },
+];
 
 export default function Positions() {
   return (
@@ -39,6 +62,5 @@ export default function Positions() {
         </Table>
       </CardContent>
     </Card>
-  )
+  );
 }
-
