@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
 declare global {
   interface Window {
@@ -10,12 +11,20 @@ declare global {
   }
 }
 
-export default function TradingView() {
+interface TradingViewProps {
+  tokenMetadata?: {
+    name: string;
+    symbol: string;
+    uri: string;
+  } | null;
+}
+
+export default function TradingView({ tokenMetadata }: TradingViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
 
   useEffect(() => {
-    if (containerRef.current && window.TradingView) {
+    if (containerRef.current && window.TradingView && tokenMetadata) {
       new window.TradingView.widget({
         autosize: true,
         symbol: "BINANCE:DOGEUSDT",
@@ -30,12 +39,22 @@ export default function TradingView() {
         container_id: "tradingview_chart",
       });
     }
-  }, [theme]);
+  }, [theme, tokenMetadata]);
+
+  if (!tokenMetadata) {
+    return (
+      <Card>
+        <CardContent className="h-[400px] flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>DOGE/USD Chart</CardTitle>
+        <CardTitle>{tokenMetadata.symbol}/SOL Chart</CardTitle>
       </CardHeader>
       <CardContent>
         <div ref={containerRef} id="tradingview_chart" className="h-[400px]" />
