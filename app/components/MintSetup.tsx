@@ -83,6 +83,7 @@ export const MintSetup = ({
   const [mintsCreated, setMintsCreated] = useState(false);
   const [userTokenBalance, setUserTokenBalance] = useState<number>(0);
   const [burnPercentage, setBurnPercentage] = useState<number>(10); // Default to 10%
+  const [positionType, setPositionType] = useState<"long" | "short">("long");
 
   useEffect(() => {
     const getBalance = async () => {
@@ -511,7 +512,13 @@ export const MintSetup = ({
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Side</Label>
-              <RadioGroup defaultValue="long" className="flex">
+              <RadioGroup
+                defaultValue="long"
+                className="flex"
+                onValueChange={(value) =>
+                  setPositionType(value as "long" | "short")
+                }
+              >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="long" id="long" />
                   <Label htmlFor="long">Long</Label>
@@ -522,21 +529,41 @@ export const MintSetup = ({
                 </div>
               </RadioGroup>
             </div>
-            {/* <div className="space-y-2">
-              <Label>Amount (DOGE)</Label>
-              <Input type="number" placeholder="0.00" />
-            </div> */}
             <div className="space-y-2">
-              <Label>Position Size: {solAmount.toFixed(2)} SOL</Label>
-              <Slider
-                value={[solAmount]}
-                onValueChange={(value) => setSolAmount(value[0])}
-                min={0.01}
-                max={Math.max(0.01, walletBalance - 0.01)}
-                step={0.01}
-                // valueLabelDisplay="auto"
-                // valueLabelFormat={(value) => `${value.toFixed(2)} SOL`}
-              />
+              <Label>Position Size (SOL)</Label>
+              <div className="space-y-1">
+                <div className="relative">
+                  <Input
+                    type="number"
+                    value={solAmount}
+                    onChange={(e) => setSolAmount(Number(e.target.value))}
+                    min={0.01}
+                    max={walletBalance}
+                    step={0.01}
+                    placeholder="Enter SOL amount"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-muted-foreground">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-4 h-4 mr-2"
+                    >
+                      <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                      <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+                      <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+                    </svg>
+                    {walletBalance.toFixed(2)} SOL
+                  </div>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  ≈ ${(solAmount * 168).toFixed(2)} USD
+                </div>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Leverage: {leverage}x</Label>
@@ -548,18 +575,14 @@ export const MintSetup = ({
                 min={1}
                 max={3}
                 step={1}
-                // marks={[
-                //   { value: 1, label: "1x" },
-                //   { value: 2, label: "2x" },
-                //   { value: 3, label: "3x" },
-                // ]}
               />
             </div>
           </div>
         </CardContent>
         <CardFooter>
           <Button
-            onClick={() => handleCreateMints("long")}
+            variant={positionType === "long" ? "success" : "destructive"}
+            onClick={() => handleCreateMints(positionType)}
             size="lg"
             type="button"
             disabled={!wallet}
@@ -570,178 +593,5 @@ export const MintSetup = ({
         </CardFooter>
       </div>
     </Card>
-    // <div className="game-panel p-6">
-    //   {!mintsCreated ? (
-    //     <div className="flex flex-col items-center gap-4">
-    //       <h3 className="text-xl font-semibold text-game-accent">
-    //         Create Position Mints
-    //       </h3>
-
-    //       <div className="bg-gray-900/50 p-4 rounded-lg mb-4 text-sm">
-    //         <p className="text-gray-300 mb-2">
-    //           You can create pools, add/remove liquidity, and swap for this
-    //           token pair on PrintDex.
-    //         </p>
-    //         <a
-    //           href="https://www.printdex.io/liquidity"
-    //           target="_blank"
-    //           rel="noopener noreferrer"
-    //           className="text-game-accent hover:text-game-secondary underline"
-    //         >
-    //           → Add/View Liquidity on PrintDex
-    //         </a>
-    //         <p className="text-gray-400 mt-2 text-xs">
-    //           PrintDex is a Token-2022 native AMM protocol that powers this
-    //           leverage trading platform.
-    //         </p>
-    //       </div>
-
-    //       <div className="flex flex-col gap-2 mb-4 w-full">
-    //         <label className="text-sm text-gray-300">
-    //           Position Size: {solAmount.toFixed(2)} SOL /{" "}
-    //           {walletBalance.toFixed(2)} SOL
-    //         </label>
-    //         {/* <Slider
-    //           value={solAmount}
-    //           onChange={(_, value) => setSolAmount(value as number)}
-    //           min={0.01}
-    //           max={Math.max(0.01, walletBalance - 0.01)}
-    //           step={0.01}
-    //           valueLabelDisplay="auto"
-    //           valueLabelFormat={(value) => `${value.toFixed(2)} SOL`}
-    //           className="text-purple-500"
-    //           sx={{
-    //             "& .MuiSlider-thumb": {
-    //               backgroundColor: "#8b5cf6",
-    //             },
-    //             "& .MuiSlider-track": {
-    //               backgroundColor: "#8b5cf6",
-    //             },
-    //             "& .MuiSlider-rail": {
-    //               backgroundColor: "#4b5563",
-    //             },
-    //           }}
-    //         /> */}
-    //       </div>
-
-    //       <div className="flex flex-col gap-2 mb-4 w-full">
-    //         <label className="text-sm text-gray-300">
-    //           Leverage: {leverage}x
-    //         </label>
-    //         {/* <Slider
-    //           value={leverage}
-    //           onChange={(_, value) => {
-    //             setLeverage(value as number);
-    //           }}
-    //           min={1}
-    //           max={3}
-    //           step={1}
-    //           marks={[
-    //             { value: 1, label: "1x" },
-    //             { value: 2, label: "2x" },
-    //             { value: 3, label: "3x" },
-    //           ]}
-    //           valueLabelDisplay="auto"
-    //           valueLabelFormat={(value) => `${value}x`}
-    //           className="text-purple-500"
-    //           sx={{
-    //             "& .MuiSlider-thumb": {
-    //               backgroundColor: "#8b5cf6",
-    //             },
-    //             "& .MuiSlider-track": {
-    //               backgroundColor: "#8b5cf6",
-    //             },
-    //             "& .MuiSlider-rail": {
-    //               backgroundColor: "#4b5563",
-    //             },
-    //             "& .MuiSlider-mark": {
-    //               backgroundColor: "#8b5cf6",
-    //             },
-    //             "& .MuiSlider-markLabel": {
-    //               color: "#9ca3af",
-    //             },
-    //           }}
-    //         /> */}
-    //       </div>
-
-    //       <div className="flex gap-4 w-full">
-    //         <button
-    //           onClick={() => handleCreateMints("long")}
-    //           disabled={isCreating || !wallet?.connected}
-    //           className="game-button flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-    //         >
-    //           {isCreating ? "Creating..." : "Go Long"}
-    //         </button>
-    //         <button
-    //           onClick={() => handleCreateMints("short")}
-    //           disabled={isCreating || !wallet?.connected}
-    //           className="game-button flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-    //         >
-    //           {isCreating ? "Creating..." : "Go Short"}
-    //         </button>
-    //       </div>
-
-    //       <div className="flex flex-col gap-2 mb-4 w-full">
-    //         <label className="text-sm text-gray-300">
-    //           Close Position: {burnPercentage}% of your position
-    //         </label>
-    //         {/* <Slider
-    //           value={burnPercentage}
-    //           onChange={(_, value) => setBurnPercentage(value as number)}
-    //           min={1}
-    //           max={100}
-    //           step={1}
-    //           valueLabelDisplay="auto"
-    //           valueLabelFormat={(value) => `${value}%`}
-    //           className="text-purple-500"
-    //           sx={{
-    //             "& .MuiSlider-thumb": {
-    //               backgroundColor: "#8b5cf6",
-    //             },
-    //             "& .MuiSlider-track": {
-    //               backgroundColor: "#8b5cf6",
-    //             },
-    //             "& .MuiSlider-rail": {
-    //               backgroundColor: "#4b5563",
-    //             },
-    //           }}
-    //         /> */}
-    //         <p className="text-xs text-gray-400 mt-1">
-    //           Select what percentage of your position you want to close
-    //         </p>
-    //       </div>
-
-    //       <div className="flex gap-4 w-full mt-4">
-    //         <button
-    //           onClick={() => handleBurnPosition("long")}
-    //           disabled={isCreating || !wallet?.connected}
-    //           className="game-button flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-    //         >
-    //           {isCreating ? "Burning..." : "Close Long"}
-    //         </button>
-    //         <button
-    //           onClick={() => handleBurnPosition("short")}
-    //           disabled={isCreating || !wallet?.connected}
-    //           className="game-button flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-    //         >
-    //           {isCreating ? "Burning..." : "Close Short"}
-    //         </button>
-    //       </div>
-    //     </div>
-    //   ) : (
-    //     <div className="flex flex-col items-center gap-4">
-    //       <h3 className="text-xl font-semibold text-game-accent">
-    //         Position Created
-    //       </h3>
-    //       <p className="text-gray-400 text-center">
-    //         Your position has been created successfully. You can now trade with
-    //         these tokens.
-    //       </p>
-    //       {/* Add any additional UI for managing existing positions */}
-    //     </div>
-    //   )}
-
-    //   {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-    // </div>
   );
 };
