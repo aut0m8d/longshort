@@ -60,6 +60,7 @@ interface MintSetupProps {
     extraAccountMetaListPDA: PublicKey;
     isLongPosition: boolean;
   }) => void;
+  gameAccount: any;
 }
 
 export const MintSetup = ({
@@ -69,6 +70,7 @@ export const MintSetup = ({
   ogMint,
   ammVaultB,
   onMintCreated,
+  gameAccount,
 }: MintSetupProps) => {
   const connection = new Connection(
     "https://rpc.shyft.to?api_key=1y872euEMghE5flT"
@@ -94,7 +96,6 @@ export const MintSetup = ({
     };
     getBalance();
   }, [wallet.publicKey, connection]);
-  const [gameAccount, setGameAccount] = useState<any>(null);
   const [isLong, setIsLong] = useState<boolean>(true);
 
   const handleCreateMints = async (positionType: "long" | "short") => {
@@ -107,60 +108,10 @@ export const MintSetup = ({
     setError(null);
 
     try {
-      if (
-        !wallet.publicKey ||
-        !wallet.signTransaction ||
-        !wallet.sendTransaction
-      ) {
-        throw new Error("Wallet not fully connected");
-      }
-      // Or if you want to use Buffer:
-      const leverageBuffer = Buffer.alloc(8);
-      leverageBuffer.writeUInt8(leverage, 0);
-
-      // Find game PDA
-      const [gamePda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("game7"), ogMint.toBuffer(), new Uint8Array([leverage])],
-        program.programId
-      );
-      if (!awallet) {
-        return;
-      }
-      // @ts-ignore
-      let gameAccount;
-      try {
-        // @ts-ignore
-        gameAccount = await program.account.game.fetch(gamePda);
-      } catch (err) {
-        console.error("Error fetching game account:", err);
-        await setupPositionMints(
-          connection,
-          wallet,
-          program,
-          Keypair.generate(),
-          Keypair.generate(),
-          ogMint,
-          new PublicKey(ammAccount),
-          new PublicKey(ammVaultA),
-          new PublicKey(ammVaultB),
-          leverage
-        );
-        while (gameAccount == null || gameAccount == undefined) {
-          try {
-            // @ts-ignore
-            gameAccount = await program.account.game.fetch(gamePda);
-          } catch (err) {
-            console.error("Error fetching game account:", err);
-          }
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-
-        return;
-      }
-      setGameAccount(gameAccount);
       const mint = gameAccount.longPositionMint;
       const otherMint = gameAccount.shortPositionMint;
       console.log(mint.toBase58(), otherMint.toBase58());
+
       // Get the extra account meta PDA for price calculation
       const extraAccountMetaList = PublicKey.findProgramAddressSync(
         [Buffer.from("extra-account-metas"), mint.toBuffer()],
@@ -214,6 +165,10 @@ export const MintSetup = ({
       console.log("Final tokens to mint:", tokensToMint.toString());
       // @ts-ignore
       // Both long and short positions use mint to enter
+      const gamePda = PublicKey.findProgramAddressSync(
+        [Buffer.from("game7"), ogMint.toBuffer(), new Uint8Array([leverage])],
+        program.programId
+      )[0];
       const mintIx = await program.methods
         .mintPosition(tokensToMint, positionType === "long", leverage)
         .accounts({
@@ -477,6 +432,12 @@ export const MintSetup = ({
 
   useEffect(() => {
     const getTokenBalance = async () => {
+      console.log(
+        "Attempting to get token balance",
+        !wallet.publicKey || !gameAccount
+      );
+      console.log("Game account:", gameAccount);
+      console.log("Wallet:", wallet.publicKey);
       if (!wallet.publicKey || !gameAccount) return;
 
       const targetMint = isLong
@@ -492,6 +453,7 @@ export const MintSetup = ({
 
       try {
         const balance = await connection.getTokenAccountBalance(userAta);
+        console.log("Token balance:", balance);
         setUserTokenBalance(balance.value.uiAmount || 0);
       } catch (err) {
         console.error("Error fetching token balance:", err);

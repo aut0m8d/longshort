@@ -35,7 +35,8 @@
     "react": "^18",
     "react-dom": "^18",
     "tailwind-merge": "^3.0.1",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "target": "link:@coral-xyz/anchor/target"
   },
   "devDependencies": {
     "@types/node": "^20",

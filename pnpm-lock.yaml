@@ -86,6 +86,9 @@ dependencies:
   tailwindcss-animate:
     specifier: ^1.0.7
     version: 1.0.7(tailwindcss@3.4.17)
+  target:
+    specifier: link:@coral-xyz/anchor/target
+    version: link:@coral-xyz/anchor/target
 
 devDependencies:
   '@types/node':

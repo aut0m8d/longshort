@@ -6,7 +6,7 @@ import {
   useWallet,
 } from "@solana/wallet-adapter-react";
 import { useState, useEffect, useCallback } from "react";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection, PublicKey, Keypair } from "@solana/web3.js";
 import { AnchorProvider, Idl, Program } from "@coral-xyz/anchor";
 import { useParams } from "next/navigation";
 
@@ -22,17 +22,32 @@ import OrderForm from "@/app/components/OrderForm";
 import Positions from "@/app/components/Positions";
 import MarketInfo from "@/app/components/MarketInfo";
 
+import { setupPositionMints } from "@/lib/mintSetup";
+
+// Add this interface near the top of the file
+interface GameProgram extends Program<Idl> {
+  account: {
+    game: {
+      fetch(address: PublicKey): Promise<any>;
+    };
+    position: {
+      all(filters: any[]): Promise<any[]>;
+    };
+  };
+}
+
 export default function Home() {
   const params = useParams();
   const [leverage, setLeverage] = useState<number>(100);
   const connection = new Connection(
     "https://rpc.shyft.to?api_key=1y872euEMghE5flT"
   );
-  const { connected } = useWallet();
+  const wallet = useWallet();
   const targetMint = params.contractAddress as string;
   const [otherMint, setOtherMint] = useState<string>("");
   const [ammAccount, setAmmAccount] = useState<string>("");
   const [ammVaultA, setAmmVaultA] = useState<string>("");
+  const [gameAccount, setGameAccount] = useState<any>(null);
   const [ammVaultB, setAmmVaultB] = useState<string>("");
   const [positionMint, setPositionMint] = useState<PublicKey | null>(null);
   const [tokenMetadata, setTokenMetadata] = useState<{
@@ -129,8 +144,8 @@ export default function Home() {
     }
   }, [connection, targetMint]);
 
-  const wallet = useAnchorWallet();
-  const [program, setProgram] = useState<Program | null>(null);
+  const awallet = useAnchorWallet();
+  const [program, setProgram] = useState<GameProgram | null>(null);
   useEffect(() => {
     async function fetchIdl() {
       if (wallet) {
@@ -147,13 +162,15 @@ export default function Home() {
               provider
             )) as Idl,
             provider
-          )
+          ) as GameProgram
         );
       }
     }
     fetchIdl();
-    const interval = setInterval(fetchIdl, 1000);
-    return () => clearInterval(interval);
+    const interval = setInterval(fetchIdl, 10000);
+    return () => {
+      clearInterval(interval);
+    };
   }, [wallet]);
   const [price, setPrice] = useState<number>(0);
   useEffect(() => {
@@ -165,6 +182,82 @@ export default function Home() {
       return () => clearInterval(interval);
     }
   }, [targetMint]);
+
+  const handleMintCreated = (mintInfo: any) => {
+    setPositionMint(mintInfo.mint);
+    setGameState((prev) => ({
+      ...prev,
+      position: mintInfo.isLongPosition ? "long" : "short",
+    }));
+  };
+
+  const initializeGameAccount = async () => {
+    console.log("Initializing game account...");
+    if (!wallet.publicKey || !awallet || !program) {
+      throw new Error("Wallet not connected or program not initialized");
+    }
+
+    const [gamePda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("game7"),
+        new PublicKey(targetMint).toBuffer(),
+        new Uint8Array([leverage]),
+      ],
+      program.programId
+    );
+
+    try {
+      // @ts-ignore
+      const existingGameAccount = await program.account.game.fetch(gamePda);
+      setGameAccount(existingGameAccount);
+      return existingGameAccount;
+    } catch (err) {
+      console.log("Game account not found, creating new one...");
+
+      // await setupPositionMints(
+      //   connection,
+      //   wallet,
+      //   program,
+      //   Keypair.generate(),
+      //   Keypair.generate(),
+      //   new PublicKey(targetMint),
+      //   new PublicKey(ammAccount),
+      //   new PublicKey(ammVaultA),
+      //   new PublicKey(ammVaultB),
+      //   leverage
+      // );
+
+      // Poll until game account is created
+      let newGameAccount = null;
+      while (newGameAccount == null) {
+        try {
+          // @ts-ignore
+          newGameAccount = await program.account.game.fetch(gamePda);
+        } catch (err) {
+          console.log("Waiting for game account initialization...");
+          await new Promise((resolve) => setTimeout(resolve, 10000));
+        }
+      }
+
+      setGameAccount(newGameAccount);
+      return newGameAccount;
+    }
+  };
+
+  // Update useEffect to initialize game account when component mounts
+  useEffect(() => {
+    const init = async () => {
+      if (wallet.publicKey && program) {
+        try {
+          await initializeGameAccount();
+        } catch (err) {
+          console.error("Error initializing game account:", err);
+        }
+      }
+    };
+
+    init();
+  }, [wallet.publicKey, program]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -181,21 +274,20 @@ export default function Home() {
                 ammAccount={ammAccount}
                 ammVaultA={ammVaultA}
                 ammVaultB={ammVaultB}
-                program={program as any} // eslint-disable-line
+                program={program as any}
                 ogMint={new PublicKey(targetMint)}
-                // eslint-disable-next-line
-                onMintCreated={(mintInfo: any) => {
-                  setPositionMint(mintInfo.mint);
-                  setGameState((prev) => ({
-                    ...prev,
-                    position: mintInfo.isLongPosition ? "long" : "short",
-                  }));
-                }}
+                onMintCreated={handleMintCreated}
+                gameAccount={gameAccount}
               />
             )}
           </div>
           <div className="lg:col-span-2">
-            <Positions />
+            <Positions
+              gameAccount={gameAccount}
+              program={program as GameProgram}
+              targetMint={new PublicKey(targetMint)}
+              leverage={leverage}
+            />
           </div>
           <div>
             {poolInfo && (
